@@ -5,6 +5,7 @@ import { esc } from '../utils/helpers';
 // Subcomponents
 import { MemberModal } from '../components/common/MemberModal';
 import { ConfirmModal } from '../components/common/ConfirmModal';
+import { CustomSelect } from '../components/common/CustomSelect';
 import { SatlinmasSkeleton } from '../components/SkeletonPages';
 import {
   UserPlus, Search, RotateCcw, Edit2, Trash2, FolderOpen, Users,
@@ -842,17 +843,16 @@ export const DataAnggota: React.FC = () => {
               />
             </div>
             <div style={{ display: 'flex', gap: '6px', flex: '1 1 160px', alignItems: 'center' }}>
-              <select
-                className="fctl"
-                style={{ flex: 1, minWidth: 0 }}
+              <CustomSelect
                 value={searchKategori}
-                onChange={(e) => setSearchKategori(e.target.value)}
-              >
-                <option value="">Semua Kategori</option>
-                {KATEGORI_ANGGOTA.map((k) => (
-                  <option key={k} value={k}>{k}</option>
-                ))}
-              </select>
+                onChange={setSearchKategori}
+                ariaLabel="Filter kategori anggota"
+                className="filter-select"
+                options={[
+                  { value: '', label: 'Semua Kategori' },
+                  ...KATEGORI_ANGGOTA.map((value) => ({ label: value, value })),
+                ]}
+              />
               <button className="bg2" onClick={handleResetFilters} title="Reset Filter" style={{ flexShrink: 0, padding: '9px 10px' }}>
                 <RotateCcw className="w-4 h-4" />
               </button>

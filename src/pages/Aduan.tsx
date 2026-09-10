@@ -28,6 +28,7 @@ import { useNotifications } from '../hooks/useRealtimeNotifications';
 import { apiPost } from '../services/api';
 import { esc } from '../utils/helpers';
 import { Modal } from '../components/common/Modal';
+import { CustomSelect } from '../components/common/CustomSelect';
 import { AduanSkeleton } from '../components/SkeletonPages';
 import { db } from '../lib/fcm';
 import { collection, onSnapshot, doc, updateDoc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
@@ -790,17 +791,18 @@ export const Aduan: React.FC = () => {
             />
           </div>
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flex: '0 0 auto' }}>
-            <select
-              className="fctl"
-              style={{ minWidth: '130px', flex: '1 1 130px' }}
+            <CustomSelect
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="">Semua Status</option>
-              <option value="Baru">Baru</option>
-              <option value="Diproses">Diproses</option>
-              <option value="Selesai">Selesai</option>
-            </select>
+              onChange={setStatusFilter}
+              ariaLabel="Filter status aduan"
+              className="filter-select"
+              options={[
+                { value: '', label: 'Semua Status' },
+                { value: 'Baru', label: 'Baru' },
+                { value: 'Diproses', label: 'Diproses' },
+                { value: 'Selesai', label: 'Selesai' },
+              ]}
+            />
             <button className="bg2" onClick={handleResetFilters} title="Reset Filter" style={{ flexShrink: 0, padding: '8px 10px' }}>
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -1969,15 +1971,16 @@ export const Aduan: React.FC = () => {
 
             <div className="fgrp">
               <label className="flbl">Status Aduan</label>
-              <select
-                className="fctl"
+              <CustomSelect
                 value={statusVal}
-                onChange={(e) => setStatusVal(e.target.value)}
-              >
-                <option value="Baru">Baru</option>
-                <option value="Diproses">Diproses</option>
-                <option value="Selesai">Selesai</option>
-              </select>
+                onChange={setStatusVal}
+                ariaLabel="Pilih status aduan"
+                options={[
+                  { value: 'Baru', label: 'Baru' },
+                  { value: 'Diproses', label: 'Diproses' },
+                  { value: 'Selesai', label: 'Selesai' },
+                ]}
+              />
             </div>
 
             <div className="fgrp">

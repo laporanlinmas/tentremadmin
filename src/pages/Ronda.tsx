@@ -24,6 +24,7 @@ import { useApp } from '../App';
 import { ConfirmModal } from '../components/common/ConfirmModal';
 import { Modal } from '../components/common/Modal';
 import { CalendarModal } from '../components/common/CalendarModal';
+import { CustomSelect } from '../components/common/CustomSelect';
 
 // ── Firebase config ───────────────────────────────────────────────────────────
 const firebaseConfig = {
@@ -324,10 +325,14 @@ export const Ronda: React.FC = () => {
 
   return (
     <div className="fu">
-      <div className="panel">
-        <div className="phd">
-          <span className="ptl">
-            <Shield className="w-4 h-4 inline-block align-middle text-emerald-500" /> Kelola Jadwal Ronda
+      <div className="panel ronda-panel">
+        <div className="phd ronda-header">
+          <span className="ptl ronda-title-wrap">
+            <span className="ronda-heading-icon"><Shield size={17} /></span>
+            <span>
+              <strong>Jadwal Ronda</strong>
+              <small>Kelola pembagian regu, pos jaga, dan siklus piket warga.</small>
+            </span>
           </span>
           <div className="fbar-right">
             <button
@@ -351,8 +356,24 @@ export const Ronda: React.FC = () => {
           </div>
         </div>
 
+        <div className="ronda-summary" aria-label="Ringkasan jadwal ronda">
+          <div className="ronda-stat">
+            <span className="ronda-stat-icon ronda-stat-blue"><Layers size={16} /></span>
+            <span><strong>{kelompokList.length}</strong><small>Total kelompok</small></span>
+          </div>
+          <div className="ronda-stat">
+            <span className="ronda-stat-icon ronda-stat-green"><Check size={16} /></span>
+            <span><strong>{kelompokList.filter((kelompok) => kelompok.aktif !== false).length}</strong><small>Kelompok aktif</small></span>
+          </div>
+          <div className="ronda-stat">
+            <span className="ronda-stat-icon ronda-stat-amber"><Calendar size={16} /></span>
+            <span><strong>{tanggalMulaiSiklus ? formatTanggalSiklus(tanggalMulaiSiklus) : 'Belum diatur'}</strong><small>Awal siklus 14 hari</small></span>
+          </div>
+        </div>
+
         {/* ── SUB SECTION: Kelompok Ronda ── */}
         <div
+          className="ronda-section-label"
           style={{
             padding: '12px 16px 6px',
             borderBottom: '2px solid var(--border)',
@@ -389,6 +410,7 @@ export const Ronda: React.FC = () => {
 
         {/* ── Tanggal Mulai Siklus ── */}
         <div
+          className="ronda-cycle-bar"
           style={{
             padding: '12px 16px',
             borderBottom: '1px solid var(--border)',
@@ -437,6 +459,7 @@ export const Ronda: React.FC = () => {
 
         {/* Day Filter Pills */}
         <div
+          className="ronda-filter-bar"
           style={{
             padding: '12px 16px 4px 16px',
             display: 'flex',
@@ -526,6 +549,7 @@ export const Ronda: React.FC = () => {
                 .map((k, idx) => (
                   <div
                     key={k.id || idx}
+                    className="ronda-group-card"
                     style={{
                       background: 'var(--card)',
                       border: '1px solid var(--border)',
@@ -758,25 +782,21 @@ export const Ronda: React.FC = () => {
                 <label className="flbl">
                   Nomor Urut <span className="req">*</span>
                 </label>
-                <select
-                  className="fctl"
+                <CustomSelect
                   value={kelompokForm.urutan}
-                  onChange={(e) => {
-                    const urut = Number(e.target.value);
+                  onChange={(urut) => {
                     setKelompokForm({
                       ...kelompokForm,
                       urutan: urut,
                       nama: kelompokModalMode === 'add' ? `Kelompok ${urut}` : kelompokForm.nama,
                     });
                   }}
-                  required
-                >
-                  {Array.from({ length: 50 }, (_, i) => i + 1).map((n) => (
-                    <option key={n} value={n}>
-                      Hari ke-{n}
-                    </option>
-                  ))}
-                </select>
+                  ariaLabel="Pilih nomor urut kelompok"
+                  options={Array.from({ length: 50 }, (_, i) => i + 1).map((value) => ({
+                    value,
+                    label: `Hari ke-${value}`,
+                  }))}
+                />
               </div>
 
               <div className="fcol">

@@ -58,12 +58,12 @@ messaging.onBackgroundMessage((payload) => {
     ],
   });
 });
-
 // ─── NOTIFICATION CLICK HANDLER ───────────────────────────────────────────────
 self.addEventListener('notificationclick', (event) => {
   const notification = event.notification;
   const action       = event.action;
-  const targetUrl    = notification.data?.url || '/aduan';
+  const targetUrl    = new URL(notification.data?.url || '/aduan', self.location.origin).href;
+  const targetPath   = new URL(targetUrl).pathname;
 
   notification.close();
 
@@ -76,7 +76,7 @@ self.addEventListener('notificationclick', (event) => {
       // Cari tab yang sudah terbuka dan arahkan ke URL tujuan
       for (const client of clientList) {
         const clientUrl = new URL(client.url);
-        if (clientUrl.pathname === targetUrl || client.url.includes(targetUrl)) {
+        if (clientUrl.pathname === targetPath || client.url === targetUrl) {
           if ('focus' in client) {
             if (client.navigate) client.navigate(targetUrl);
             return client.focus();
@@ -87,42 +87,6 @@ self.addEventListener('notificationclick', (event) => {
       if (clients.openWindow) {
         return clients.openWindow(targetUrl);
       }
-    })
-  );
-});
-
-// ─── PUSH EVENT HANDLER (Fallback jika FCM compat tidak handle) ──────────────
-self.addEventListener('push', (event) => {
-  if (!event.data) return;
-
-  let data = {};
-  try {
-    data = event.data.json();
-  } catch {
-    // Bukan JSON — abaikan, FCM compat sudah handle
-    return;
-  }
-
-  // Hanya proses jika belum ditangani oleh FCM messaging.onBackgroundMessage
-  const notifData  = data.notification || data.data || data;
-  const title      = notifData.title || '🚨 Aduan Warga Baru!';
-  const body       = notifData.body  || 'Laporan pengaduan baru masuk, segera tindaklanjuti.';
-  const ticket     = (data.data || {}).ticket || '';
-
-  event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      icon:  '/assets/icon-192.png',
-      badge: '/assets/icon-192.png',
-      vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 500],
-      tag:   'tentrem-aduan-' + (ticket || Date.now()),
-      renotify: true,
-      requireInteraction: true,
-      data:  { url: '/aduan', ticket },
-      actions: [
-        { action: 'open',    title: '📋 Buka Admin' },
-        { action: 'dismiss', title: '✕ Tutup' },
-      ],
     })
   );
 });

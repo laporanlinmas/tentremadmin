@@ -10,6 +10,7 @@ import { apiPost } from '../services/api';
 import { formatImageSize, MAX_NEWS_IMAGE_BYTES, prepareNewsImage } from '../utils/imageUpload';
 import { Modal } from '../components/common/Modal';
 import { ConfirmModal } from '../components/common/ConfirmModal';
+import { CustomSelect } from '../components/common/CustomSelect';
 import { BeritaSkeleton } from '../components/SkeletonPages';
 
 // Firebase imports
@@ -791,28 +792,28 @@ export const Berita: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flex: '0 0 auto', flexWrap: 'nowrap' }}>
-            <select
-              className="fctl"
-              style={{ flex: '1 1 130px', minWidth: '130px' }}
+            <CustomSelect
               value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-            >
-              <option value="Semua">Semua Status</option>
-              <option value="published">Terbit (Published)</option>
-              <option value="draft">Draf (Draft)</option>
-            </select>
+              onChange={setSelectedStatus}
+              ariaLabel="Filter status berita"
+              className="filter-select"
+              options={[
+                { value: 'Semua', label: 'Semua Status' },
+                { value: 'published', label: 'Terbit (Published)' },
+                { value: 'draft', label: 'Draf (Draft)' },
+              ]}
+            />
 
-            <select
-              className="fctl"
-              style={{ flex: '1 1 160px', minWidth: '160px' }}
+            <CustomSelect
               value={selectedKategori}
-              onChange={(e) => setSelectedKategori(e.target.value)}
-            >
-              <option value="Semua">Semua Kategori</option>
-              {KATEGORI_BERITA.map(k => (
-                <option key={k} value={k}>{k}</option>
-              ))}
-            </select>
+              onChange={setSelectedKategori}
+              ariaLabel="Filter kategori berita"
+              className="filter-select filter-select-wide"
+              options={[
+                { value: 'Semua', label: 'Semua Kategori' },
+                ...KATEGORI_BERITA.map((value) => ({ label: value, value })),
+              ]}
+            />
 
             <button className="bg2" onClick={handleResetFilters} title="Reset Filter" style={{ padding: '8px 10px' }}>
               <RotateCcw className="w-4 h-4" />
@@ -1390,15 +1391,12 @@ export const Berita: React.FC = () => {
               <div className="frow3">
                 <div className="fcol">
                   <label className="flbl">Kategori</label>
-                  <select
-                    className="fctl"
+                  <CustomSelect
                     value={kategori}
-                    onChange={(e) => setKategori(e.target.value)}
-                  >
-                    {KATEGORI_BERITA.map(k => (
-                      <option key={k} value={k}>{k}</option>
-                    ))}
-                  </select>
+                    onChange={setKategori}
+                    ariaLabel="Pilih kategori berita"
+                    options={KATEGORI_BERITA.map((value) => ({ label: value, value }))}
+                  />
                 </div>
 
                 <div className="fcol">
@@ -1428,14 +1426,15 @@ export const Berita: React.FC = () => {
               <div className="frow">
                 <div className="fcol">
                   <label className="flbl">Status Publikasi</label>
-                  <select
-                    className="fctl"
+                  <CustomSelect
                     value={status}
-                    onChange={(e) => setStatus(e.target.value as any)}
-                  >
-                    <option value="published">Terbitkan Langsung (Published)</option>
-                    <option value="draft">Simpan Sebagai Draf (Draft)</option>
-                  </select>
+                    onChange={(value) => setStatus(value as 'published' | 'draft')}
+                    ariaLabel="Pilih status publikasi"
+                    options={[
+                      { value: 'published', label: 'Terbitkan Langsung (Published)' },
+                      { value: 'draft', label: 'Simpan Sebagai Draf (Draft)' },
+                    ]}
+                  />
                 </div>
 
                 <div className="fcol" style={{ justifyContent: 'center' }}>

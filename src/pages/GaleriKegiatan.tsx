@@ -36,6 +36,7 @@ import { useApp } from '../App';
 import { apiPost } from '../services/api';
 import { Modal } from '../components/common/Modal';
 import { ConfirmModal } from '../components/common/ConfirmModal';
+import { CustomSelect } from '../components/common/CustomSelect';
 import { prepareImage500KB } from '../utils/imageUpload';
 
 // Firebase client init
@@ -520,22 +521,19 @@ export const GaleriKegiatan: React.FC = () => {
 
           {/* Category Filter + Reset (kept on one row on mobile) */}
           <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flex: '0 0 auto', flexWrap: 'nowrap' }}>
-            <select
-              className="fctl"
-              style={{ flex: '1 1 140px', minWidth: '140px' }}
+            <CustomSelect
               value={categoryFilter}
-              onChange={(e) => {
-                setCategoryFilter(e.target.value);
+              onChange={(value) => {
+                setCategoryFilter(value);
                 setCurrentPage(1);
               }}
-            >
-              <option value="">Semua Kategori</option>
-              {KATEGORI_GALERI.map((kat) => (
-                <option key={kat} value={kat}>
-                  {kat}
-                </option>
-              ))}
-            </select>
+              ariaLabel="Filter kategori kegiatan"
+              className="filter-select filter-select-wide"
+              options={[
+                { value: '', label: 'Semua Kategori' },
+                ...KATEGORI_GALERI.map((value) => ({ label: value, value })),
+              ]}
+            />
 
             {/* Reset Filter Button */}
             <button
@@ -853,17 +851,12 @@ export const GaleriKegiatan: React.FC = () => {
               <label className="flbl">
                 Kategori Kegiatan <span className="freq">*</span>
               </label>
-              <select
-                className="fctl"
+              <CustomSelect
                 value={kategori}
-                onChange={(e) => setKategori(e.target.value)}
-              >
-                {KATEGORI_GALERI.map((kat) => (
-                  <option key={kat} value={kat}>
-                    {kat}
-                  </option>
-                ))}
-              </select>
+                onChange={setKategori}
+                ariaLabel="Pilih kategori kegiatan"
+                options={KATEGORI_GALERI.map((value) => ({ label: value, value }))}
+              />
             </div>
 
             <div className="fg">

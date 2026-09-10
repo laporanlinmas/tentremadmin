@@ -6,6 +6,7 @@ import { esc } from '../utils/helpers';
 // Subcomponents
 import { MemberModal } from '../components/common/MemberModal';
 import { ConfirmModal } from '../components/common/ConfirmModal';
+import { CustomSelect } from '../components/common/CustomSelect';
 import { SatlinmasSkeleton } from '../components/SkeletonPages';
 import {
   UserPlus, Search, RotateCcw, Edit2, Trash2, FolderOpen, Users,
@@ -1098,17 +1099,16 @@ export const DataSatlinmas: React.FC = () => {
               />
             </div>
             <div style={{ display: 'flex', gap: '6px', flex: '1 1 160px', alignItems: 'center' }}>
-              <select
-                className="fctl"
-                style={{ flex: 1, minWidth: 0 }}
+              <CustomSelect
                 value={searchUnit}
-                onChange={(e) => setSearchUnit(e.target.value)}
-              >
-                <option value="">Semua Unit</option>
-                {unitOptions.map((u) => (
-                  <option key={u} value={u}>{u}</option>
-                ))}
-              </select>
+                onChange={setSearchUnit}
+                ariaLabel="Filter unit personel"
+                className="filter-select"
+                options={[
+                  { value: '', label: 'Semua Unit' },
+                  ...unitOptions.map((value) => ({ label: value, value })),
+                ]}
+              />
               <button className="bg2" onClick={handleResetFilters} title="Reset Filter" style={{ flexShrink: 0, padding: '9px 10px' }}>
                 <RotateCcw className="w-4 h-4" />
               </button>

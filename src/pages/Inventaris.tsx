@@ -4,6 +4,7 @@ import { useApp } from '../App';
 import { apiGet, apiPost } from '../services/api';
 import { esc } from '../utils/helpers';
 import { ConfirmModal } from '../components/common/ConfirmModal';
+import { CustomSelect } from '../components/common/CustomSelect';
 import { prepareImage500KB } from '../utils/imageUpload';
 
 import {
@@ -253,15 +254,21 @@ const FormModal: React.FC<FormModalProps> = ({ editing, onClose, onSaved, showLo
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
               <label className={labelCls} style={{ color: 'var(--text)' }}>Jenis Aset</label>
-              <select className={fctlCls} value={form.jenis} onChange={e => set('jenis', e.target.value)}>
-                {JENIS_OPTIONS.map(j => <option key={j}>{j}</option>)}
-              </select>
+              <CustomSelect
+                value={form.jenis}
+                onChange={(value) => set('jenis', value)}
+                ariaLabel="Pilih jenis aset"
+                options={JENIS_OPTIONS.map((value) => ({ label: value, value }))}
+              />
             </div>
             <div>
               <label className={labelCls} style={{ color: 'var(--text)' }}>Kondisi</label>
-              <select className={fctlCls} value={form.kondisi} onChange={e => set('kondisi', e.target.value)}>
-                {KONDISI_OPTIONS.map(k => <option key={k}>{k}</option>)}
-              </select>
+              <CustomSelect
+                value={form.kondisi}
+                onChange={(value) => set('kondisi', value)}
+                ariaLabel="Pilih kondisi aset"
+                options={KONDISI_OPTIONS.map((value) => ({ label: value, value }))}
+              />
             </div>
           </div>
 
@@ -276,9 +283,12 @@ const FormModal: React.FC<FormModalProps> = ({ editing, onClose, onSaved, showLo
             </div>
             <div>
               <label className={labelCls} style={{ color: 'var(--text)' }}>Satuan</label>
-              <select className={fctlCls} value={form.satuan} onChange={e => set('satuan', e.target.value)}>
-                {SATUAN_OPTIONS.map(s => <option key={s}>{s}</option>)}
-              </select>
+              <CustomSelect
+                value={form.satuan}
+                onChange={(value) => set('satuan', value)}
+                ariaLabel="Pilih satuan aset"
+                options={SATUAN_OPTIONS.map((value) => ({ label: value, value }))}
+              />
             </div>
           </div>
 
@@ -536,16 +546,26 @@ export const InventarisPage: React.FC = () => {
             onChange={e => setSearch(e.target.value)} />
         </div>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flex: '1 1 auto', flexWrap: 'nowrap', minWidth: 0 }}>
-          <select className="fctl" style={{ flex: '1 1 130px', minWidth: 0 }} value={filterJenis}
-            onChange={e => setFilterJenis(e.target.value)}>
-            <option value="">Semua Jenis</option>
-            {JENIS_OPTIONS.map(j => <option key={j}>{j}</option>)}
-          </select>
-          <select className="fctl" style={{ flex: '1 1 130px', minWidth: 0 }} value={filterKondisi}
-            onChange={e => setFilterKondisi(e.target.value)}>
-            <option value="">Semua Kondisi</option>
-            {KONDISI_OPTIONS.map(k => <option key={k}>{k}</option>)}
-          </select>
+          <CustomSelect
+            value={filterJenis}
+            onChange={setFilterJenis}
+            ariaLabel="Filter jenis aset"
+            className="filter-select"
+            options={[
+              { value: '', label: 'Semua Jenis' },
+              ...JENIS_OPTIONS.map((value) => ({ label: value, value })),
+            ]}
+          />
+          <CustomSelect
+            value={filterKondisi}
+            onChange={setFilterKondisi}
+            ariaLabel="Filter kondisi aset"
+            className="filter-select"
+            options={[
+              { value: '', label: 'Semua Kondisi' },
+              ...KONDISI_OPTIONS.map((value) => ({ label: value, value })),
+            ]}
+          />
           <button className="bg2" onClick={() => { setSearch(''); setFilterJenis(''); setFilterKondisi(''); }}
             title="Reset" style={{ padding: '9px 10px', flexShrink: 0 }}>
             <RotateCcw className="w-4 h-4" />

@@ -87,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, setIsOpenMobile 
       <div className="sb-header">
         <div className="sb-brand">
           <div className="sb-logo-wrap">
-            <img src="assets/linmas.svg" alt="Logo" className="sb-logo" />
+            <img src="/assets/linmas.svg" alt="Logo TENTREM" className="sb-logo" />
           </div>
           <div className="sb-brand-text">
             <span className="sb-brand-name">TENTREM</span>

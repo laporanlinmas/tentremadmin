@@ -20,7 +20,19 @@ import { SurveiSkeleton } from '../components/SkeletonPages';
 
 // Firebase imports
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, collection, onSnapshot } from 'firebase/firestore';
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  getAggregateFromServer,
+  query,
+  orderBy,
+  limit,
+  startAfter,
+  count,
+  average,
+  type DocumentSnapshot,
+} from 'firebase/firestore';
 import { Chart } from 'chart.js/auto';
 
 interface SurveyResponse {
@@ -59,6 +71,18 @@ export const Survei: React.FC = () => {
   const { triggerToast } = useApp();
   const [surveyList, setSurveyList] = useState<SurveyResponse[]>([]);
   const [isFetching, setIsFetching] = useState(true);
+  const [isPageLoading, setIsPageLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [pageCursors, setPageCursors] = useState<(DocumentSnapshot | null)[]>([null]);
+  const [surveyStats, setSurveyStats] = useState({
+    count: 0,
+    kemudahan: 0,
+    kegunaan: 0,
+    kecepatan: 0,
+    keakuratan: 0,
+    rekomendasi: 0,
+  });
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
 
   const toggleCard = (id: string) => {
@@ -71,11 +95,55 @@ export const Survei: React.FC = () => {
   const radarChartInstance = useRef<any>(null);
   const barChartInstance = useRef<any>(null);
 
-  // Pagination for feedback/saran
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 5;
+  const ITEMS_PER_PAGE = 10;
 
-  // Listen to Firestore real-time updates for survey
+  const mapSurveyResponse = (docSnap: DocumentSnapshot): SurveyResponse => {
+    const data = docSnap.data() || {};
+    return {
+      id: docSnap.id,
+      nama: data.nama || '',
+      pekerjaan: data.pekerjaan || '',
+      kemudahan: Number(data.kemudahan || 0),
+      kegunaan: Number(data.kegunaan || 0),
+      kecepatan: Number(data.kecepatan || 0),
+      keakuratan: Number(data.keakuratan || 0),
+      rekomendasi: Number(data.rekomendasi || 0),
+      saran: data.saran || '',
+      createdAt: data.createdAt || '',
+    };
+  };
+
+  const loadSurveyPage = async (page: number, cursor: DocumentSnapshot | null) => {
+    if (!db) return;
+    setIsPageLoading(true);
+    try {
+      const pageQuery = query(
+        collection(db, 'survey_kepuasan'),
+        orderBy('createdAt', 'desc'),
+        ...(cursor ? [startAfter(cursor)] : []),
+        limit(ITEMS_PER_PAGE)
+      );
+      const snapshot = await getDocs(pageQuery);
+      const nextCursor = snapshot.docs[snapshot.docs.length - 1] || null;
+      setSurveyList(snapshot.docs.map(mapSurveyResponse));
+      setHasNextPage(snapshot.docs.length === ITEMS_PER_PAGE);
+      setCurrentPage(page);
+      setPageCursors((previous) => {
+        const next = previous.slice(0, page + 1);
+        next[page] = nextCursor;
+        return next;
+      });
+      setExpandedCards({});
+    } catch (error) {
+      console.error('Error loading survey page:', error);
+      triggerToast('Gagal memuat halaman data survei.', 'er');
+    } finally {
+      setIsPageLoading(false);
+      setIsFetching(false);
+    }
+  };
+
+  // Fetch only one visible page, while aggregates keep dashboard metrics accurate.
   useEffect(() => {
     if (!db) {
       setIsFetching(false);
@@ -83,51 +151,42 @@ export const Survei: React.FC = () => {
     }
 
     setIsFetching(true);
-    const colRef = collection(db, 'survey_kepuasan');
-    
-    const unsubscribe = onSnapshot(
-      colRef,
-      (snapshot) => {
-        const list: SurveyResponse[] = [];
-        snapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          list.push({
-            id: docSnap.id,
-            nama: data.nama || '',
-            pekerjaan: data.pekerjaan || '',
-            kemudahan: Number(data.kemudahan || 0),
-            kegunaan: Number(data.kegunaan || 0),
-            kecepatan: Number(data.kecepatan || 0),
-            keakuratan: Number(data.keakuratan || 0),
-            rekomendasi: Number(data.rekomendasi || 0),
-            saran: data.saran || '',
-            createdAt: data.createdAt || '',
-          });
+    const loadSurvey = async () => {
+      try {
+        const aggregate = await getAggregateFromServer(query(collection(db, 'survey_kepuasan')), {
+          count: count(),
+          kemudahan: average('kemudahan'),
+          kegunaan: average('kegunaan'),
+          kecepatan: average('kecepatan'),
+          keakuratan: average('keakuratan'),
+          rekomendasi: average('rekomendasi'),
         });
-
-        // Sort by date/createdAt desc
-        list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-
-        setSurveyList(list);
-        setIsFetching(false);
-      },
-      (error) => {
-        console.error('Error onSnapshot survey:', error);
+        const values = aggregate.data();
+        setSurveyStats({
+          count: values.count,
+          kemudahan: Number(values.kemudahan || 0),
+          kegunaan: Number(values.kegunaan || 0),
+          kecepatan: Number(values.kecepatan || 0),
+          keakuratan: Number(values.keakuratan || 0),
+          rekomendasi: Number(values.rekomendasi || 0),
+        });
+        await loadSurveyPage(1, null);
+      } catch (error) {
+        console.error('Error loading survey:', error);
         triggerToast('Gagal memuat data survei.', 'er');
         setIsFetching(false);
       }
-    );
+    };
 
-    return () => unsubscribe();
+    loadSurvey();
   }, [triggerToast]);
 
   // Calculate Metrics
-  const totalResponses = surveyList.length;
+  const totalResponses = surveyStats.count;
   
-  const getAverage = (key: keyof Omit<SurveyResponse, 'id' | 'saran' | 'createdAt' | 'timestamp'>) => {
+  const getAverage = (key: keyof Pick<SurveyResponse, 'kemudahan' | 'kegunaan' | 'kecepatan' | 'keakuratan' | 'rekomendasi'>) => {
     if (totalResponses === 0) return 0;
-    const sum = surveyList.reduce((acc, curr) => acc + (curr[key] as number), 0);
-    return Number((sum / totalResponses).toFixed(2));
+    return Number(surveyStats[key].toFixed(2));
   };
 
   const avgKemudahan = getAverage('kemudahan');
@@ -261,10 +320,13 @@ export const Survei: React.FC = () => {
 
   const feedbackList = surveyList.filter(s => s.saran.trim() !== '');
   const totalFeedback = feedbackList.length;
-  const totalPages = Math.max(1, Math.ceil(totalFeedback / ITEMS_PER_PAGE));
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalFeedback);
-  const currentFeedback = feedbackList.slice(startIndex, endIndex);
+  const totalPages = hasNextPage ? currentPage + 1 : currentPage;
+  const currentFeedback = feedbackList;
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page === currentPage || page > totalPages || isPageLoading) return;
+    loadSurveyPage(page, pageCursors[page - 1] || null);
+  };
 
   // Helper to format ISO date to readable local date
   const formatTanggal = (isoStr: string) => {
@@ -294,7 +356,7 @@ export const Survei: React.FC = () => {
         key="prev"
         className="pbn"
         disabled={prevDisabled}
-        onClick={() => setCurrentPage(currentPage - 1)}
+        onClick={() => handlePageChange(currentPage - 1)}
       >
         <ChevronLeft className="w-4 h-4 inline-block align-middle" />
       </button>
@@ -308,7 +370,7 @@ export const Survei: React.FC = () => {
         <button
           key={p}
           className={`pbn ${p === currentPage ? 'on' : ''}`}
-          onClick={() => setCurrentPage(p)}
+          onClick={() => handlePageChange(p)}
         >
           {p}
         </button>
@@ -320,7 +382,7 @@ export const Survei: React.FC = () => {
         key="next"
         className="pbn"
         disabled={nextDisabled}
-        onClick={() => setCurrentPage(currentPage + 1)}
+        onClick={() => handlePageChange(currentPage + 1)}
       >
         <ChevronRight className="w-4 h-4 inline-block align-middle" />
       </button>
@@ -480,7 +542,7 @@ export const Survei: React.FC = () => {
                   <MessageSquare className="w-4 h-4 inline-block align-middle" /> Saran &amp; Masukan Warga
                 </span>
                 <span style={{ fontSize: '.64rem', color: 'var(--muted)' }}>
-                  Total masukan: {totalFeedback}
+                  Masukan di halaman ini: {totalFeedback}
                 </span>
               </div>
               
@@ -498,7 +560,7 @@ export const Survei: React.FC = () => {
                         <div className="flex justify-between items-start">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-[10px] text-blue-450 dark:text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
-                              {fb.nama || `Responden #${totalResponses - (startIndex + idx)}`}
+                              {fb.nama || `Responden #${totalResponses - ((currentPage - 1) * ITEMS_PER_PAGE + idx)}`}
                             </span>
                             {fb.pekerjaan && (
                               <span className="text-[10px] text-slate-400 font-medium bg-slate-800/60 px-2 py-0.5 rounded border border-slate-700/40">
@@ -538,7 +600,7 @@ export const Survei: React.FC = () => {
                   <span>
                     {totalFeedback === 0
                       ? 'Tidak ada masukan tertulis'
-                      : `Menampilkan ${startIndex + 1}–${endIndex} dari ${totalFeedback} masukan`}
+                      : `Menampilkan ${totalFeedback} masukan di halaman ${currentPage}`}
                   </span>
                   <div className="pbs">{renderPaginationButtons()}</div>
                 </div>
@@ -574,7 +636,7 @@ export const Survei: React.FC = () => {
                 <tbody>
                   {surveyList.map((s, i) => (
                     <tr key={s.id}>
-                      <td style={{ textAlign: 'center', color: 'var(--muted)' }}>{totalResponses - i}</td>
+                      <td style={{ textAlign: 'center', color: 'var(--muted)' }}>{totalResponses - ((currentPage - 1) * ITEMS_PER_PAGE + i)}</td>
                       <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{s.nama || '—'}</td>
                       <td style={{ color: 'var(--mid)', whiteSpace: 'nowrap' }}>{s.pekerjaan || '—'}</td>
                       <td style={{ textAlign: 'center', color: '#f59e0b', fontWeight: 700 }}>{s.kemudahan}</td>
@@ -613,7 +675,7 @@ export const Survei: React.FC = () => {
                         </span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <span style={{ fontSize: '.68rem', color: 'var(--muted)', fontFamily: 'var(--mono)' }}>
-                            #{totalResponses - i}
+                            #{totalResponses - ((currentPage - 1) * ITEMS_PER_PAGE + i)}
                           </span>
                           <ChevronRight
                             className="w-4 h-4 text-[var(--muted)]"

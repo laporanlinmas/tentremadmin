@@ -42,7 +42,7 @@ const saveStoredIds = (key: string, ids: Set<string>) => {
   }
 };
 
-function showNativeNotification(
+async function showNativeNotification(
   title: string,
   body: string,
   tag: string,
@@ -53,16 +53,31 @@ function showNativeNotification(
   if (typeof window === 'undefined') return;
   if (!('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
+
+  const notificationOptions = {
+    body,
+    icon: '/assets/icon-192.png',
+    badge: '/assets/icon-192.png',
+    tag,
+    requireInteraction,
+    renotify: true,
+    silent: false,
+    vibrate: [500, 110, 500],
+    data: { url },
+    actions: [
+      { action: 'open', title: 'Buka Admin' },
+      { action: 'dismiss', title: 'Tutup' },
+    ],
+  } as NotificationOptions;
+
   try {
-    const notif = new Notification(title, {
-      body,
-      icon: '/assets/icon-192.png',
-      badge: '/assets/icon-192.png',
-      tag,
-      requireInteraction,
-      silent: false,
-      data: { url },
-    } as any);
+    const registration = await navigator.serviceWorker.ready;
+    if ('showNotification' in registration) {
+      await registration.showNotification(title, notificationOptions);
+      return;
+    }
+
+    const notif = new Notification(title, notificationOptions);
     notif.onclick = () => {
       window.focus();
       if (onClick) onClick();

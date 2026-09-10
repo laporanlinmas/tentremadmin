@@ -73,12 +73,6 @@ export default async function handler(req: any, res: any) {
         ticket: payload.ticket || '',
       },
 
-      // Notifikasi dasar (tampil di semua platform)
-      notification: {
-        title: payload.title,
-        body: payload.body,
-      },
-
       // ── Android: prioritas tinggi + pola getar ───────────
       android: {
         priority: 'high',
@@ -118,22 +112,12 @@ export default async function handler(req: any, res: any) {
           Urgency: 'high',
           TTL: '86400',
         },
-        notification: {
+        data: {
           title: payload.title,
           body: payload.body,
-          icon: '/assets/icon-192.png',
-          badge: '/assets/icon-192.png',
-          requireInteraction: true,
-          vibrate: [500, 110, 500, 110, 450, 110, 200, 110, 170, 40, 500],
-          tag: 'tentrem-aduan-' + (payload.ticket || Date.now()),
-          renotify: true,
-          silent: false,
-          data: { url: targetUrl },
-          actions: [
-            { action: 'open', title: '📋 Buka Admin' },
-            { action: 'dismiss', title: '✕ Tutup' },
-          ],
-        } as any,
+          url: targetUrl,
+          ticket: payload.ticket || '',
+        },
         fcmOptions: {
           link: targetUrl,
         },

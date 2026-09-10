@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { CustomSelect } from './CustomSelect';
 
 interface CalendarModalProps {
   show: boolean;
@@ -102,27 +103,20 @@ export const CalendarModal: React.FC<CalendarModalProps> = ({ show, onClose, onS
               <ChevronLeft size={16} />
             </button>
             
-            <select
-              className="fctl"
-              style={{ flex: 1.3, padding: '4px 8px', fontSize: '.75rem', height: '32px', borderRadius: '8px', cursor: 'pointer' }}
+            <CustomSelect
               value={month}
-              onChange={(e) => setMonth(parseInt(e.target.value))}
-            >
-              {INDO_MONTHS.map((mName, idx) => (
-                <option key={idx} value={idx}>{mName}</option>
-              ))}
-            </select>
-            
-            <select
-              className="fctl"
-              style={{ flex: 1, padding: '4px 8px', fontSize: '.75rem', height: '32px', borderRadius: '8px', cursor: 'pointer' }}
+              onChange={setMonth}
+              ariaLabel="Pilih bulan"
+              className="calendar-select calendar-month-select"
+              options={INDO_MONTHS.map((label, value) => ({ label, value }))}
+            />
+            <CustomSelect
               value={year}
-              onChange={(e) => setYear(parseInt(e.target.value))}
-            >
-              {years.map((yVal) => (
-                <option key={yVal} value={yVal}>{yVal}</option>
-              ))}
-            </select>
+              onChange={setYear}
+              ariaLabel="Pilih tahun"
+              className="calendar-select calendar-year-select"
+              options={years.map((value) => ({ label: String(value), value }))}
+            />
 
             <button className="iact" style={{ padding: '6px' }} onClick={handleNextMonth} type="button">
               <ChevronRight size={16} />

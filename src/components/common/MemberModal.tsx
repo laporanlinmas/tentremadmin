@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Anggota } from '../../types';
 import { useApp } from '../../App';
 import { Modal } from './Modal';
+import { CustomSelect } from './CustomSelect';
 import { KATEGORI_ANGGOTA } from '../../pages/DataAnggota';
 
 // Firebase imports – MemberModal langsung tulis ke Firestore anggotaPoskamling
@@ -82,12 +83,20 @@ const CalendarModal: React.FC<CalendarModalProps> = ({ currentValue, onSelect, o
         </div>
 
         <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-          <select className="fctl" style={{ flex: 1.3, padding: '6px 10px', fontSize: '.75rem', height: '34px', borderRadius: '10px' }} value={month} onChange={(e) => setMonth(parseInt(e.target.value))}>
-            {months.map((mName, idx) => <option key={idx} value={idx}>{mName}</option>)}
-          </select>
-          <select className="fctl" style={{ flex: 1, padding: '6px 10px', fontSize: '.75rem', height: '34px', borderRadius: '10px' }} value={year} onChange={(e) => setYear(parseInt(e.target.value))}>
-            {years.map((yVal) => <option key={yVal} value={yVal}>{yVal}</option>)}
-          </select>
+          <CustomSelect
+            value={month}
+            onChange={setMonth}
+            ariaLabel="Pilih bulan lahir"
+            className="calendar-select calendar-month-select"
+            options={months.map((label, value) => ({ label, value }))}
+          />
+          <CustomSelect
+            value={year}
+            onChange={setYear}
+            ariaLabel="Pilih tahun lahir"
+            className="calendar-select calendar-year-select"
+            options={years.map((value) => ({ label: String(value), value }))}
+          />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center', fontSize: '.7rem', fontWeight: 800, marginBottom: '6px', opacity: 0.8 }}>
@@ -287,30 +296,26 @@ export const MemberModal: React.FC<MemberModalProps> = ({
           </div>
           <div className="fcol">
             <label className="flbl">Kategori</label>
-            <select
-              className="fctl"
+            <CustomSelect
               value={kategori}
-              onChange={(e) => setKategori(e.target.value)}
-              style={{ borderRadius: '10px' }}
-            >
-              {KATEGORI_ANGGOTA.map((k) => (
-                <option key={k} value={k}>{k}</option>
-              ))}
-            </select>
+              onChange={setKategori}
+              ariaLabel="Pilih kategori anggota"
+              options={KATEGORI_ANGGOTA.map((value) => ({ label: value, value }))}
+            />
           </div>
         </div>
         {unitOptions.length > 0 && (
           <div className="fgrp">
             <label className="flbl">Unit</label>
-            <select
-              className="fctl"
+            <CustomSelect
               value={unit}
-              onChange={(e) => setUnit(e.target.value)}
-              style={{ borderRadius: '10px' }}
-            >
-              <option value="">Pilih unit...</option>
-              {unitOptions.map((option) => <option key={option} value={option}>{option}</option>)}
-            </select>
+              onChange={setUnit}
+              ariaLabel="Pilih unit anggota"
+              options={[
+                { label: 'Pilih unit...', value: '' },
+                ...unitOptions.map((value) => ({ label: value, value })),
+              ]}
+            />
           </div>
         )}
         <div className="fgrp">
