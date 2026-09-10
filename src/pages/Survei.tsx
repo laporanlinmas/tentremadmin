@@ -99,6 +99,10 @@ export const Survei: React.FC = () => {
 
   const mapSurveyResponse = (docSnap: DocumentSnapshot): SurveyResponse => {
     const data = docSnap.data() || {};
+    const rawCreatedAt = data.createdAt || data.timestamp || '';
+    const createdAt = rawCreatedAt?.toDate
+      ? rawCreatedAt.toDate().toISOString()
+      : String(rawCreatedAt || '');
     return {
       id: docSnap.id,
       nama: data.nama || '',
@@ -109,12 +113,12 @@ export const Survei: React.FC = () => {
       keakuratan: Number(data.keakuratan || 0),
       rekomendasi: Number(data.rekomendasi || 0),
       saran: data.saran || '',
-      createdAt: data.createdAt || '',
+      createdAt,
     };
   };
 
-  const loadSurveyPage = async (page: number, cursor: DocumentSnapshot | null) => {
-    if (!db) return;
+  const loadSurveyPage = async (page: number, cursor: DocumentSnapshot | null): Promise<SurveyResponse[]> => {
+    if (!db) return [];
     setIsPageLoading(true);
     try {
       const pageQuery = query(
@@ -125,7 +129,8 @@ export const Survei: React.FC = () => {
       );
       const snapshot = await getDocs(pageQuery);
       const nextCursor = snapshot.docs[snapshot.docs.length - 1] || null;
-      setSurveyList(snapshot.docs.map(mapSurveyResponse));
+      const pageItems = snapshot.docs.map(mapSurveyResponse);
+      setSurveyList(pageItems);
       setHasNextPage(snapshot.docs.length === ITEMS_PER_PAGE);
       setCurrentPage(page);
       setPageCursors((previous) => {
@@ -134,16 +139,19 @@ export const Survei: React.FC = () => {
         return next;
       });
       setExpandedCards({});
+      return pageItems;
     } catch (error) {
       console.error('Error loading survey page:', error);
       triggerToast('Gagal memuat halaman data survei.', 'er');
+      return [];
     } finally {
       setIsPageLoading(false);
       setIsFetching(false);
     }
   };
 
-  // Fetch only one visible page, while aggregates keep dashboard metrics accurate.
+  // Fetch the visible page first; aggregate metrics are supplemental and must not
+  // prevent the respondent table from rendering when older data is inconsistent.
   useEffect(() => {
     if (!db) {
       setIsFetching(false);
@@ -152,6 +160,16 @@ export const Survei: React.FC = () => {
 
     setIsFetching(true);
     const loadSurvey = async () => {
+      let firstPage: SurveyResponse[] = [];
+      try {
+        firstPage = await loadSurveyPage(1, null);
+      } catch (error) {
+        console.error('Error loading survey page:', error);
+        triggerToast('Gagal memuat data survei.', 'er');
+        setIsFetching(false);
+        return;
+      }
+
       try {
         const aggregate = await getAggregateFromServer(query(collection(db, 'survey_kepuasan')), {
           count: count(),
@@ -170,11 +188,19 @@ export const Survei: React.FC = () => {
           keakuratan: Number(values.keakuratan || 0),
           rekomendasi: Number(values.rekomendasi || 0),
         });
-        await loadSurveyPage(1, null);
       } catch (error) {
-        console.error('Error loading survey:', error);
-        triggerToast('Gagal memuat data survei.', 'er');
-        setIsFetching(false);
+        // The table remains usable even if aggregation is unavailable because
+        // of mixed legacy field types or Firestore aggregation permissions.
+        console.warn('Survey aggregate unavailable; using visible page metrics.', error);
+        setSurveyStats((previous) => ({
+          ...previous,
+          count: firstPage.length,
+          kemudahan: firstPage.reduce((sum, item) => sum + item.kemudahan, 0) / Math.max(firstPage.length, 1),
+          kegunaan: firstPage.reduce((sum, item) => sum + item.kegunaan, 0) / Math.max(firstPage.length, 1),
+          kecepatan: firstPage.reduce((sum, item) => sum + item.kecepatan, 0) / Math.max(firstPage.length, 1),
+          keakuratan: firstPage.reduce((sum, item) => sum + item.keakuratan, 0) / Math.max(firstPage.length, 1),
+          rekomendasi: firstPage.reduce((sum, item) => sum + item.rekomendasi, 0) / Math.max(firstPage.length, 1),
+        }));
       }
     };
 
