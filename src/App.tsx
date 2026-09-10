@@ -133,6 +133,7 @@ const getTabFromPath = (path: string): string => {
   if (cleanPath === '/survei') return 'sv';
   if (cleanPath === '/anggota') return 'sl';
   if (cleanPath === '/peta') return 'pt';
+  if (cleanPath === '/inventaris') return 'inv';
   if (cleanPath === '/pengaturan') return 'set';
   if (cleanPath === '/dashboard' || cleanPath === '/') return 'db';
   return 'db';
@@ -147,6 +148,7 @@ const getPathFromTab = (tab: string): string => {
     case 'sv': return '/survei';
     case 'sl': return '/anggota';
     case 'pt': return '/peta';
+    case 'inv': return '/inventaris';
     case 'set': return '/pengaturan';
     case 'db':
     default:
@@ -213,8 +215,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         '/ronda',
         '/galeri',
         '/aduan',
+        '/survei',
         '/anggota',
         '/peta',
+        '/inventaris',
         '/pengaturan'
       ];
       if (currentPath === '/rekap') {

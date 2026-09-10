@@ -8,8 +8,6 @@ import {
   Check,
   ToggleLeft,
   ToggleRight,
-  Clock,
-  MapPin,
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
@@ -62,8 +60,6 @@ export const Ronda: React.FC = () => {
     id: string;
     nama: string;
     danpok: string;
-    poskamling: string;
-    jadwal: string;
     anggota: string;
     urutan: number;
     aktif: boolean;
@@ -71,8 +67,6 @@ export const Ronda: React.FC = () => {
     id: '',
     nama: '',
     danpok: '',
-    poskamling: '',
-    jadwal: '',
     anggota: '',
     urutan: 1,
     aktif: true,
@@ -200,8 +194,6 @@ export const Ronda: React.FC = () => {
       id: '',
       nama: `Kelompok ${kelompokList.length + 1}`,
       danpok: '',
-      poskamling: '',
-      jadwal: '',
       anggota: '',
       urutan: (kelompokList.length + 1) * 10,
       aktif: true,
@@ -225,8 +217,6 @@ export const Ronda: React.FC = () => {
       id: k.id || String(k._ri || ''),
       nama: k.nama || '',
       danpok: pDanpok,
-      poskamling: k.poskamling || '',
-      jadwal: k.jadwal || '',
       anggota: rawMembers,
       urutan: typeof k.urutan === 'number' ? k.urutan : 10,
       aktif: k.aktif !== false,
@@ -262,8 +252,6 @@ export const Ronda: React.FC = () => {
       nomorUrut: Number(kelompokForm.urutan) || 1,
       danpok: danpokName,
       danru: danpokName,
-      poskamling: kelompokForm.poskamling.trim(),
-      jadwal: kelompokForm.jadwal.trim() || `Hari ke-${kelompokForm.urutan} (21:30 - 02:00 WIB)`,
       anggota: finalMembers,
       keterangan: '',
       urutan: Number(kelompokForm.urutan) || 10,
@@ -613,22 +601,6 @@ export const Ronda: React.FC = () => {
                         </span>
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <MapPin className="w-3.5 h-3.5 text-cyan-500 shrink-0" />
-                        <span>
-                          Pos: <strong style={{ color: 'var(--text)' }}>{k.poskamling || '—'}</strong>
-                        </span>
-                      </div>
-
-                      {k.jadwal && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                          <span>
-                            Jadwal: <span style={{ color: 'var(--text)' }}>{k.jadwal}</span>
-                          </span>
-                        </div>
-                      )}
-
                       {/* Anggota / Personil */}
                       {k.anggota && k.anggota.length > 0 && (
                         <div style={{ marginTop: '4px' }}>
@@ -821,27 +793,6 @@ export const Ronda: React.FC = () => {
                   value={kelompokForm.danpok}
                   onChange={(e) => setKelompokForm({ ...kelompokForm, danpok: e.target.value })}
                   placeholder="Nama Danpok (misal: Slamet Riyadi)"
-                />
-              </div>
-            </div>
-
-            <div className="frow">
-              <div className="fcol">
-                <label className="flbl">Pos / Lokasi Jaga</label>
-                <input
-                  className="fctl"
-                  value={kelompokForm.poskamling}
-                  onChange={(e) => setKelompokForm({ ...kelompokForm, poskamling: e.target.value })}
-                  placeholder="Poskamling RT 01/RW 01"
-                />
-              </div>
-              <div className="fcol">
-                <label className="flbl">Jadwal / Jam Jaga</label>
-                <input
-                  className="fctl"
-                  value={kelompokForm.jadwal}
-                  onChange={(e) => setKelompokForm({ ...kelompokForm, jadwal: e.target.value })}
-                  placeholder="21:30 - 02:00 WIB"
                 />
               </div>
             </div>
