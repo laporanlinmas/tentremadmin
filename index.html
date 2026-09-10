@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" id="mvp">
+  <title>Tentrem Admin</title>
+  
+  <!-- FAVICON & PWA -->
+  <link rel="icon" href="/assets/icon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="/assets/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/icon-192.png">
+  <link rel="shortcut icon" href="/assets/icon-32.png">
+  
+  <!-- PWA MANIFEST -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1e293b">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TENTREM">
+  <meta name="application-name" content="TENTREM">
+  
+  <!-- FONTS & ICON PACKS (Genesis Theme Typography) -->
+  <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    html, body {
+      touch-action: pan-x pan-y;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  
+  <script type="module" src="/src/main.tsx"></script>
+
+  <!-- Cegah pinch-to-zoom & double-tap zoom di mobile, KECUALI pada photo viewer -->
+  <script>
+    (function () {
+      function isZoomAllowed(target) {
+        return !!(target && (target.closest('[data-allow-zoom="true"]') || target.closest('.photo-zoom-container')));
+      }
+      document.addEventListener('gesturestart', function (e) {
+        if (!isZoomAllowed(e.target)) e.preventDefault();
+      }, { passive: false });
+      document.addEventListener('gesturechange', function (e) {
+        if (!isZoomAllowed(e.target)) e.preventDefault();
+      }, { passive: false });
+      document.addEventListener('gestureend', function (e) {
+        if (!isZoomAllowed(e.target)) e.preventDefault();
+      }, { passive: false });
+      document.addEventListener('touchmove', function (e) {
+        if (e.touches.length > 1 && !isZoomAllowed(e.target)) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      var lastTouch = 0;
+      document.addEventListener('touchend', function (e) {
+        var now = Date.now();
+        if (now - lastTouch <= 300 && !isZoomAllowed(e.target)) {
+          e.preventDefault();
+        }
+        lastTouch = now;
+      }, { passive: false });
+    })();
+  </script>
+
+  <!-- PWA SERVICE WORKER REGISTRATION -->
+  <script>
+    (function () {
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js')
+            .then(function (reg) { console.log('[SW] Terdaftar:', reg.scope); })
+            .catch(function (err) { console.warn('[SW] Gagal:', err); });
+        });
+      }
+    })();
+  </script>
+</body>
+
+</html>
