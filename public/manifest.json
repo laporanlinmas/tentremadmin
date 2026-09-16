@@ -1,0 +1,36 @@
+{
+  "id": "/",
+  "name": "TENTREM — Tugurejo Nyaman Tanggap Responsif Modern",
+  "short_name": "TENTREM",
+  "description": "Dashboard Sistem Siskamling Desa Tugurejo",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f1117",
+  "theme_color": "#1e293b",
+  "lang": "id",
+  "scope": "/",
+  "gcm_sender_id": "536621352207",
+  "icons": [
+    {
+      "src": "/assets/icon-32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icon-full.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["government", "productivity"],
+  "screenshots": []
+}
